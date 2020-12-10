@@ -27,4 +27,5 @@ def start():
         print(f'Tempo decorrido: {timePassed}')
         if(msg == 'Partida Finalizada'):
             game_over = True
+            
 start()

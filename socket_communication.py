@@ -1,13 +1,14 @@
 import socket
 import math
 import pickle
+import time
 
 HEADERSIZE = 10
 
 def send_msg(conn, msg):
     msg_len = len(msg)
     header = f'{msg_len:<{HEADERSIZE}}'
-    print(header)
+    # print(HEADERSIZE)
     conn.send(header.encode('utf-8'))
     conn.send(msg)
 
