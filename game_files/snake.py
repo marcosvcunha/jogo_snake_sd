@@ -1,5 +1,5 @@
 from enum import Enum
-
+import copy
 INITIAL_SIZE = 4
 
 class Direction(Enum):
@@ -25,24 +25,60 @@ class Snake():
         else:
             self.segments = [[3, 27], [2, 27], [1, 27], [0, 27]]
             self.direction = Direction.RIGHT
-    
-    def move(self):
+        
+        self.lastDirection = copy.copy(self.direction)
 
+    def move(self, allSnakes, foods):
 
+        self.lastDirection = copy.copy(self.direction)
+        
         lastPos = self.segments[0].copy()
+        head = self.segments[0].copy()
 
         if(self.direction == Direction.UP):
-            self.segments[0][1] -= 1
+            head[1] -= 1
         elif(self.direction == Direction.RIGHT):
-            self.segments[0][0] += 1
+            head[0] += 1
         elif(self.direction == Direction.DOWN):
-            self.segments[0][1] += 1
+            head[1] += 1
         else:
-            self.segments[0][0] -= 1
+            head[0] -= 1
 
-        for i in range(1, len(self.segments)):
-            print(i)
-            aux = self.segments[i].copy()
-            self.segments[i] = lastPos
-            lastPos = aux.copy()
+        if(head[0] < 0 or head[0] >= 30 or head[1] < 0 or head[1] >= 30):
+            ## Bateu numa parede
+            return False
+        else:
+            didHit = False
+            for snake in allSnakes:
+                for segment in snake.segments:
+                    if(segment == head):
+                        didHit = True
+            
+            if(not didHit):
+                # Confere se come alguma comida
+                for food in foods:
+                    if(head == food):
+                        foods.remove(head)
+                        self.segments.insert(0, head)
+                        return True
+                        
+                self.segments[0] = head.copy()
+                for i in range(1, len(self.segments)):
+                    aux = self.segments[i].copy()
+                    self.segments[i] = lastPos
+                    lastPos = aux.copy()
+                
+                return True
+            else:
+                return False
 
+            
+    
+    # def hit()        
+
+
+    def toDict(self):
+        return {
+            'player_id': self.player_id,
+            'segments': self.segments
+        }

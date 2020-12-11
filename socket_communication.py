@@ -3,7 +3,7 @@ import math
 import pickle
 import time
 
-HEADERSIZE = 10
+HEADERSIZE = 128
 
 def send_msg(conn, msg):
     msg_len = len(msg)

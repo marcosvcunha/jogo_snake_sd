@@ -9,7 +9,7 @@ import time
 from datetime import datetime
 import threading
 
-from game_files.snake import Direction
+from game_files.snake import Direction, Snake
 
 HEADERSIZE = 10
 SERVER_ADDR = '192.168.100.8' #socket.gethostname()
@@ -73,20 +73,23 @@ class Game():
                 game_update = sc.rcv_msg(self.s)
                 if(game_update['msg_type'] == 'game_update'):
                     snakes = game_update['snakes']
-                    self.draw_board(snakes)
+                    foods = game_update['foods']
+                    self.draw_board(snakes, foods)
                 else:
                     if(game_update['msg'] == 'Game Over'):
                         self.doRun = False
                         pygame.quit()
                     elif(game_update['msg'] == 'start_count'):
                         snakes = game_update['snakes']
-                        self.draw_board(snakes)
+                        foods = game_update['foods']
+                        self.draw_board(snakes, foods)
                         count = game_update['count']
                         starting_msg.setText('O jogo vai iniciar em: ' + str(count))
                         starting_msg.draw()
                         pygame.display.update()
-            except:
+            except Exception as e:
                 print('Exceção em receive_update')
+                print(str(e))
 
     def doNothing(self):
         pass
@@ -104,12 +107,17 @@ class Game():
         
         pygame.display.update()
     
-    def draw_board(self, snakes):
+    def draw_board(self, snakes, foods):
         self.win.fill((255, 255, 255))
         for snake in snakes:
-            for square in snake:
-                pygame.draw.rect(self.win, (0, 0, 0), (square[0]*SQUARE_SIZE, square[1]*SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE))
-        
+            if(snake['player_id'] == self.player_id):
+                color = (35, 41, 158)
+            else:
+                color = (0, 0, 0)
+            for square in snake['segments']:
+                pygame.draw.rect(self.win, color, (square[0]*SQUARE_SIZE, square[1]*SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE))
+            for food in foods:
+                pygame.draw.rect(self.win, (252, 186, 3), (food[0]*SQUARE_SIZE + 2, food[1]*SQUARE_SIZE + 2, SQUARE_SIZE - 4, SQUARE_SIZE - 4))
         pygame.display.update()
         
 
@@ -118,6 +126,7 @@ class Game():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 print('Encerrando o JOGO!!!')
+                self.send_exit_warning()
                 self.doRun = False
                 pygame.quit()
             elif(event.type == pygame.MOUSEBUTTONDOWN):
@@ -132,6 +141,15 @@ class Game():
                     self.send_action(Direction.DOWN)
                 elif(event.key == pygame.K_LEFT):
                     self.send_action(Direction.LEFT)
+    
+    def send_exit_warning(self):
+        msg = {
+            'type': 'user_left',
+            'player_id': self.player_id,
+        }
+
+        sc.send_msg(self.s, pickle.dumps(msg))
+
 
     def send_action(self, direction):
         print('Enviando Ação!!')
