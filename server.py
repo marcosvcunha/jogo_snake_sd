@@ -8,10 +8,13 @@ from game_files.snake import Snake
 import copy
 import random
 from datetime import datetime
+import threading
+
+
 
 
 # HEADERSIZE = 10
-N_PLAYERS = 2 # número de jogadores por partida
+N_PLAYERS = 1 # número de jogadores por partida
 SERVER_ADDR = '192.168.100.8' #socket.gethostname()
 FRAME_TIME = 0.1
 # print(SERVER_ADDR)
@@ -26,11 +29,9 @@ class Client():
 class GameConnection():
     ## Game Connection é a classe que gerencia um jogo.
     ## Espera que um número X de jogadores se conecte, então inicia a partida.
-    def __init__(self):
-        self.my_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.my_socket.bind((SERVER_ADDR, 1234))
-        self.my_socket.listen(5)
+    def __init__(self, my_socket):
 
+        self.my_socket = my_socket
         # self.client_sockets = []
         # self.client_addresses = []
         self.clients = []
@@ -91,8 +92,8 @@ class GameConnection():
         while(self.doRun):
             self.add_food()
             self.send_updated_objects()
-            self.move_snakes()
             time.sleep(FRAME_TIME)
+            self.move_snakes()
 
         # self.doRun = False
         msg = {
@@ -134,10 +135,14 @@ class GameConnection():
         for snake in self.snakes:
             doMove = snake.move(self.snakes, self.foods)
             if(not doMove):
+                ## Avisa o jogador que morreu
+                self.notifyDeath([client for client in self.clients if client.id == snake.player_id][0])
                 ## A cobra acertou uma das paredes
-                print("Acertou a parede!")
                 self.foods = self.foods + snake.segments
                 self.killSnake(snake.player_id)
+
+                if(len(self.snakes) == 1):
+                    self.notifyWinner([client for client in self.clients if client.id == self.snakes[0].player_id][0])
 
     def add_food(self):
         ## adiciona uma nova comida
@@ -173,11 +178,32 @@ class GameConnection():
             self.foods.append(newFood)
             self.lastFoodTime = auxTime
 
+    def notifyWinner(self, client):
+        msg = {
+                'msg_type': 'game_msg',
+                'msg': 'you_win',
+        }
+        sc.send_msg(client.socket, pickle.dumps(msg))
+        # client.socket.close()
+        client.isConnected = False
 
+    def notifyDeath(self, client):
+        print('Notificando a morte')
+        print(client.addr)
+        msg = {
+                'msg_type': 'game_msg',
+                'msg': 'you_died',
+                'position': len(self.snakes),
+                'total': N_PLAYERS, 
+        }
+        sc.send_msg(client.socket, pickle.dumps(msg))
+        # client.socket.close()
+        client.isConnected = False
 
     def killSnake(self, player_id):
         self.snakes = [snake for snake in self.snakes if snake.player_id != player_id]
         if(len(self.snakes) == 0):
+            print('Encerrando o jogo!')
             self.doRun = False
 
     def receive_actions(self, client):
@@ -196,10 +222,12 @@ class GameConnection():
                                 snake.direction = direction
                 elif(msg['type'] == 'user_left'):
                     ## Remove a cobra do jogador que saiu
-                    print("Jogador Saiu!!")
-                    self.snakes = [snake for snake in self.snakes if snake.player_id != msg['player_id']]
+                    
                     client.isConnected = False
+                    self.foods = self.foods + [snake for snake in self.snakes if snake.player_id == client.id][0].segments
                     self.killSnake(client.id)
+                    # self.snakes = [snake for snake in self.snakes if snake.player_id != msg['player_id']]
+
             except Exception as e:
                 client.isConnected = False
                 self.killSnake(client.id)
@@ -207,6 +235,22 @@ class GameConnection():
                 print(str(e))
         print('Parando de receber Ações!')
 
-game = GameConnection()
-game.wait_connection()
-game.start_game()
+def playGame(game):
+    print('Iniciando a thread')
+    game.start_game()
+
+game_threads = []
+
+
+my_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+my_socket.bind((SERVER_ADDR, 1234))
+my_socket.listen(6)
+
+for i in range(3):
+    print('Iniciando conexão')
+    game = GameConnection(my_socket)
+    game.wait_connection()
+    t = threading.Thread(target=playGame, args=(copy.copy(game),))
+    t.start()
+    game_threads.append(t)
+
