@@ -9,13 +9,14 @@ import copy
 import random
 from datetime import datetime
 import threading
+from datetime import datetime
 
 
 
 
 # HEADERSIZE = 10
-N_PLAYERS = 1 # número de jogadores por partida
-SERVER_ADDR = '192.168.100.8' #socket.gethostname()
+N_PLAYERS = 2 # número de jogadores por partida
+SERVER_ADDR = '2804:d51:5001:8300:3d13:405b:291b:20f' #'192.168.100.8' #socket.gethostname()
 FRAME_TIME = 0.1
 # print(SERVER_ADDR)
 class Client():
@@ -89,11 +90,17 @@ class GameConnection():
             t.start()
 
         self.lastFoodTime = datetime.now().timestamp()
+        lastMoveTime = 0
         while(self.doRun):
+            startTime = datetime.now().timestamp()
             self.add_food()
             self.send_updated_objects()
-            time.sleep(FRAME_TIME)
-            self.move_snakes()
+            time.sleep(0.02)
+            now = datetime.now().timestamp()
+            if(now - lastMoveTime >= 0.1):
+                self.move_snakes()
+                lastMoveTime = now
+            print(f'Tempo decorrido: {datetime.now().timestamp() - startTime}')
 
         # self.doRun = False
         msg = {
@@ -242,7 +249,7 @@ def playGame(game):
 game_threads = []
 
 
-my_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+my_socket = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
 my_socket.bind((SERVER_ADDR, 1234))
 my_socket.listen(6)
 

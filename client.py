@@ -5,12 +5,12 @@ from datetime import datetime
 import threading
 
 HEADERSIZE = 10
-SERVER_ADDR = '192.168.100.8' #socket.gethostname()
+SERVER_ADDR = '2804:d51:5001:8300:3d13:405b:291b:20f' #'192.168.100.8' #socket.gethostname()
 PORT = 1234
 
 
 def start():
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
     print("Iniciando conexão com o servidor...")
     s.connect((SERVER_ADDR, PORT))
     print('Esperando outros jogadores se conectarem...')

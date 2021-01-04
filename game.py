@@ -14,7 +14,7 @@ from game_files.snake import Direction, Snake
 
 
 HEADERSIZE = 10
-SERVER_ADDR = '192.168.100.8' #socket.gethostname()
+SERVER_ADDR = '2804:d51:5001:8300:3d13:405b:291b:20f' #'192.168.100.8' #socket.gethostname()
 PORT = 1234
 
 
@@ -49,7 +49,7 @@ class Game():
     def start_request(self):
         ## Função chamada quando o usuário clica em "Iniciar jogo" no menu
         ## TODO: Implementar função para iniciar o jogo.
-        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.s = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
         print("Iniciando conexão com o servidor...")
         self.s.connect((SERVER_ADDR, PORT))
         print('Esperando outros jogadores se conectarem...')
