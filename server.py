@@ -15,7 +15,7 @@ from datetime import datetime
 
 
 # HEADERSIZE = 10
-N_PLAYERS = 2 # número de jogadores por partida
+N_PLAYERS = 1 # número de jogadores por partida
 SERVER_ADDR = '2804:d51:5001:8300:3d13:405b:291b:20f' #'192.168.100.8' #socket.gethostname()
 FRAME_TIME = 0.1
 # print(SERVER_ADDR)
@@ -95,12 +95,12 @@ class GameConnection():
             startTime = datetime.now().timestamp()
             self.add_food()
             self.send_updated_objects()
-            time.sleep(0.02)
+            time.sleep(0.05)
             now = datetime.now().timestamp()
             if(now - lastMoveTime >= 0.1):
                 self.move_snakes()
                 lastMoveTime = now
-            print(f'Tempo decorrido: {datetime.now().timestamp() - startTime}')
+            # print(f'Tempo decorrido: {datetime.now().timestamp() - startTime}')
 
         # self.doRun = False
         msg = {
