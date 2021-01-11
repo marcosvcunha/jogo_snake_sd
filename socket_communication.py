@@ -10,8 +10,8 @@ def send_msg(conn, msg):
     # print(msg_len)
     # header = f'{msg_len:<{HEADERSIZE}}'
     # # print(HEADERSIZE)
-    # conn.send(header.encode('utf-8'))
     conn.send(msg)
+    # conn.send(msg)
 
 def rcv_msg(conn):
     try:

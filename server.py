@@ -14,11 +14,9 @@ from datetime import datetime
 
 
 
-# HEADERSIZE = 10
-N_PLAYERS = 1 # número de jogadores por partida
+N_PLAYERS = 2 # número de jogadores por partida
 SERVER_ADDR = '2804:d51:5001:8300:3d13:405b:291b:20f' #'192.168.100.8' #socket.gethostname()
 FRAME_TIME = 0.1
-# print(SERVER_ADDR)
 class Client():
     def __init__(self, socket, addr, player_id):
         self.socket = socket
