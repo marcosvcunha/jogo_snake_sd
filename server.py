@@ -3,7 +3,6 @@ import time
 import math
 import socket_communication as sc
 import threading
-import pickle
 from game_files.snake import Snake
 import copy
 import random
@@ -14,8 +13,10 @@ from datetime import datetime
 
 
 
-N_PLAYERS = 2 # número de jogadores por partida
+N_PLAYERS = 1 # número de jogadores por partida
 SERVER_ADDR = '2804:d51:5001:8300:3d13:405b:291b:20f' #'192.168.100.8' #socket.gethostname()
+PORT = 1234
+PORT_UDP = 1235
 FRAME_TIME = 0.1
 class Client():
     def __init__(self, socket, addr, player_id):
@@ -60,17 +61,15 @@ class GameConnection():
                 'player_id': client.id,
             }
             self.snakes.append(Snake(client.id))
-            sc.send_msg(client.socket, pickle.dumps(msg))
+            sc.send_msg(client.socket, msg)
         time.sleep(0.2)
 
     def start_game(self):
-        ## Iniciando:
         self.doRun = True
-        # snakeArray = []
-        # for snake in self.snakes:
-            # snakeArray.append(snake.segments)
-        
         snakes = [s.toDict() for s in self.snakes]
+
+        self.my_udp_socket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
+        time.sleep(1)
 
         for i in range(3):
             msg = {
@@ -121,10 +120,11 @@ class GameConnection():
         self.send_msg_to_all(msg)
 
     def send_msg_to_all(self, msg):
+        print("Enviando mensagem para todos!")
         for client in self.clients:
             try:
                 if(client.isConnected):
-                    sc.send_msg(client.socket, pickle.dumps(msg))
+                    sc.send_udp_msg(self.my_udp_socket, (client.addr[0], PORT_UDP), msg)
             except:
                 if(client.errorCounter == 0):
                     client.isConnected == False
@@ -188,7 +188,7 @@ class GameConnection():
                 'msg_type': 'game_msg',
                 'msg': 'you_win',
         }
-        sc.send_msg(client.socket, pickle.dumps(msg))
+        sc.send_udp_msg(self.my_udp_socket, (client.addr[0], PORT_UDP),msg)
         # client.socket.close()
         client.isConnected = False
 
@@ -201,7 +201,7 @@ class GameConnection():
                 'position': len(self.snakes),
                 'total': N_PLAYERS, 
         }
-        sc.send_msg(client.socket, pickle.dumps(msg))
+        sc.send_udp_msg(self.my_udp_socket, (client.addr[0], PORT_UDP), msg)
         # client.socket.close()
         client.isConnected = False
 
@@ -248,7 +248,7 @@ game_threads = []
 
 
 my_socket = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
-my_socket.bind((SERVER_ADDR, 1234))
+my_socket.bind((SERVER_ADDR, PORT))
 my_socket.listen(6)
 
 for i in range(3):

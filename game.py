@@ -2,7 +2,6 @@ import pygame
 import threading
 import time
 from button import Button
-import pickle
 import socket
 import socket_communication as sc
 import time
@@ -16,6 +15,7 @@ from game_files.snake import Direction, Snake
 HEADERSIZE = 10
 SERVER_ADDR = '2804:d51:5001:8300:3d13:405b:291b:20f' #'192.168.100.8' #socket.gethostname()
 PORT = 1234
+PORT_UDP = 1235
 
 
 ## Função do lado do cliente que mostra a tela do jogo e captura os eventos
@@ -66,6 +66,9 @@ class Game():
 
         self.currentState = State.PLAYING
 
+        self.socket_udp = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
+        self.socket_udp.bind((SERVER_ADDR, PORT_UDP))
+
 
         self.draw_menu()
 
@@ -76,10 +79,11 @@ class Game():
     def receive_update(self):
         starting_msg = Button(pygame, self.win, x=(WIDTH//2), y = (HEIGHT//2), height=60, width=150,
                  text='O jogo vai iniciar em: ', onPressed=self.doNothing, color=(255, 255, 255), textColor=(0, 0, 0))
+        
         while(self.currentState == State.PLAYING):
             try:
-                game_update = sc.rcv_msg(self.s)
-                print(game_update['msg_type'])
+                print('Esperando game update!!')
+                game_update = sc.rcv_udp_msg(self.socket_udp)
                 if(game_update['msg_type'] == 'game_update'):
                     snakes = game_update['snakes']
                     foods = game_update['foods']
@@ -108,7 +112,7 @@ class Game():
 
             except Exception as e:
                 print('Exceção em receive_update')
-                print(str(e))
+                # print(str(e))
 
     def doNothing(self):
         pass
@@ -195,7 +199,7 @@ class Game():
             'player_id': self.player_id,
         }
 
-        sc.send_msg(self.s, pickle.dumps(msg))
+        sc.send_msg(self.s, msg)
 
 
     def send_action(self, direction):
@@ -206,7 +210,7 @@ class Game():
             'player_id':self.player_id,
         }
 
-        sc.send_msg(self.s, pickle.dumps(msg))
+        sc.send_msg(self.s, msg)
     
 
 

@@ -10,7 +10,7 @@ def send_msg(conn, msg):
     # print(msg_len)
     # header = f'{msg_len:<{HEADERSIZE}}'
     # # print(HEADERSIZE)
-    conn.send(msg)
+    conn.send(pickle.dumps(msg))
     # conn.send(msg)
 
 def rcv_msg(conn):
@@ -31,3 +31,20 @@ def rcv_msg(conn):
     # except:
     #     pass
     #     # print('Erro ao receber o Body')
+
+def rcv_udp_msg(sock):
+    try:
+        msg, addr = sock.recvfrom(HEADERSIZE)
+        # print(pickle.dumps(msg))
+        print(msg)
+        return pickle.loads(msg)
+    except Exception as e:
+        print('Erro Ao Receber Mensagem!!!')
+        print(e)
+
+def send_udp_msg(sock, client, msg):
+    try:
+        print(msg)
+        sock.sendto(pickle.dumps(msg), client)
+    except:
+        pass
