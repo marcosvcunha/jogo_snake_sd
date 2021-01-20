@@ -63,11 +63,12 @@ class Game():
 
         start_msg = sc.rcv_msg(self.s)
         self.player_id = start_msg['player_id']
+        self.my_address = start_msg['ip']
 
         self.currentState = State.PLAYING
 
         self.socket_udp = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
-        self.socket_udp.bind((SERVER_ADDR, PORT_UDP))
+        self.socket_udp.bind((self.my_address, PORT_UDP))
 
 
         self.draw_menu()

@@ -47,6 +47,7 @@ class GameConnection():
         print(f"Esperando {N_PLAYERS} jogadores se conectarem...")
         for i in range(N_PLAYERS):
             conn, address = self.my_socket.accept()
+            print(address[0])
             # self.client_sockets.append(conn)
             # self.client_addresses.append(address)
             self.clients.append(Client(conn, address, i))
@@ -59,6 +60,7 @@ class GameConnection():
             msg = {
                 'status':'Iniciando Partida',
                 'player_id': client.id,
+                'ip': client.addr[0]
             }
             self.snakes.append(Snake(client.id))
             sc.send_msg(client.socket, msg)
