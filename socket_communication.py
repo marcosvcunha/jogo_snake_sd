@@ -36,7 +36,7 @@ def rcv_udp_msg(sock):
     try:
         msg, addr = sock.recvfrom(HEADERSIZE)
         # print(pickle.dumps(msg))
-        print(msg)
+        # print(msg)
         return pickle.loads(msg)
     except Exception as e:
         print('Erro Ao Receber Mensagem!!!')
@@ -44,7 +44,7 @@ def rcv_udp_msg(sock):
 
 def send_udp_msg(sock, client, msg):
     try:
-        print(msg)
+        # print(msg)
         sock.sendto(pickle.dumps(msg), client)
     except:
         pass

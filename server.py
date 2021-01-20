@@ -47,7 +47,6 @@ class GameConnection():
         print(f"Esperando {N_PLAYERS} jogadores se conectarem...")
         for i in range(N_PLAYERS):
             conn, address = self.my_socket.accept()
-            print(address[0])
             # self.client_sockets.append(conn)
             # self.client_addresses.append(address)
             self.clients.append(Client(conn, address, i))
@@ -196,7 +195,6 @@ class GameConnection():
 
     def notifyDeath(self, client):
         print('Notificando a morte')
-        print(client.addr)
         msg = {
                 'msg_type': 'game_msg',
                 'msg': 'you_died',
